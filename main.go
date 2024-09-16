@@ -3,10 +3,14 @@ package main
 import (
 	"errors"
 	"fmt"
+	"io"
 	"os"
 
+	"net/http"
+	"net/http/cookiejar"
+	"net/url"
+
 	"github.com/joho/godotenv"
-	// "net/http"
 )
 
 func main() {
@@ -16,10 +20,37 @@ func main() {
 
 	if err != nil {
 		fmt.Println(err)
-		return
+		os.Exit(1)
 	}
 
-	fmt.Println(config)
+	loginUrl := config.url + "/bakaweb/Login"
+
+	jar, err := cookiejar.New(nil)
+	if err != nil {
+		fmt.Println(err)
+		os.Exit(1)
+	}
+
+	client := &http.Client{
+		Jar: jar,
+	}
+
+	resp, err := client.PostForm(loginUrl, url.Values{
+		"username":   {config.username},
+		"password":   {config.password},
+		"persistent": {"true"},
+	})
+
+	if err != nil {
+		fmt.Println(err)
+		os.Exit(1)
+	}
+
+	defer resp.Body.Close()
+
+	content, _ := io.ReadAll(resp.Body)
+
+	fmt.Println(string(content))
 }
 
 type Config struct {

@@ -76,18 +76,18 @@ func main() {
 	}
 
 	fmt.Println(days)
-
 }
 
 type Class struct {
-	num     int
-	from    time.Time
-	to      time.Time
-	date    time.Time
-	teacher string
-	room    string
-	name    string
-	status  string
+	num       int
+	from      time.Time
+	to        time.Time
+	date      time.Time
+	teacher   string
+	room      string
+	homeworks []string
+	name      string
+	status    string
 }
 
 type Day []Class
@@ -140,9 +140,10 @@ func getClass(node *html.Node, index int, hours []Hour, date time.Time) (*Class,
 	dayItemNode := dom.QuerySelector(node, "div[data-detail]")
 
 	type DataDetail struct {
-		Type    string `json:"type"`
-		Teacher string `json:"teacher"`
-		Room    string `json:"room"`
+		Type      string   `json:"type"`
+		Teacher   string   `json:"teacher"`
+		Room      string   `json:"room"`
+		Homeworks []string `json:"homeworks"`
 	}
 	dataDetail := DataDetail{}
 
@@ -188,14 +189,15 @@ func getClass(node *html.Node, index int, hours []Hour, date time.Time) (*Class,
 	name := dom.InnerText(nameNode)
 
 	return &Class{
-		num:     hours[index].num,
-		from:    hours[index].from,
-		to:      hours[index].to,
-		date:    date,
-		teacher: dataDetail.Teacher,
-		room:    dataDetail.Room,
-		name:    name,
-		status:  "normal",
+		num:       hours[index].num,
+		from:      hours[index].from,
+		to:        hours[index].to,
+		date:      date,
+		teacher:   dataDetail.Teacher,
+		room:      dataDetail.Room,
+		homeworks: dataDetail.Homeworks,
+		name:      name,
+		status:    "normal",
 	}, nil
 }
 

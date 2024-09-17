@@ -71,6 +71,7 @@ type Class struct {
 	homeworks []string
 	name      string
 	status    string
+	theme     string
 }
 
 type Day []Class
@@ -127,6 +128,7 @@ func getClass(node *html.Node, index int, hours []Hour, date time.Time) (*Class,
 		Teacher   string   `json:"teacher"`
 		Room      string   `json:"room"`
 		Homeworks []string `json:"homeworks"`
+		Theme     string   `json:"theme"`
 	}
 	dataDetail := DataDetail{}
 
@@ -179,6 +181,7 @@ func getClass(node *html.Node, index int, hours []Hour, date time.Time) (*Class,
 		teacher:   dataDetail.Teacher,
 		room:      dataDetail.Room,
 		homeworks: dataDetail.Homeworks,
+		theme:     dataDetail.Theme,
 		name:      name,
 		status:    "normal",
 	}, nil

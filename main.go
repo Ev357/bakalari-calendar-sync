@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/joho/godotenv"
@@ -38,23 +39,6 @@ func main() {
 		panic(err)
 	}
 
-	event := &calendar.Event{
-		Summary:     "Google I/O 2015",
-		Description: "A chance to hear more about Google's developer products.",
-		Start: &calendar.EventDateTime{
-			DateTime: "2024-09-17T11:35:00-00:00",
-		},
-		End: &calendar.EventDateTime{
-			DateTime: "2024-09-17T12:20:00-00:00",
-		},
-	}
-
-	_, err = srv.Events.Insert(config.account, event).Do()
-
-	if err != nil {
-		panic(err)
-	}
-
 	for _, day := range bakalariCalendar {
 		for _, event := range day {
 			googleEvent, err := findGoogleEvent(googleCalendar, event)
@@ -64,9 +48,50 @@ func main() {
 			}
 
 			if googleEvent != nil {
-				fmt.Println(googleEvent.Summary)
+				switch event.status {
+				case "normal":
+					// Check if the event is still correct
+				default:
+					err := srv.Events.Delete(config.account, googleEvent.Id).Do()
+					if err != nil {
+						panic(err)
+					}
+				}
+			} else {
+				_, err := srv.Events.Insert(config.account, getClassEvent(event)).Do()
+				if err != nil {
+					panic(err)
+				}
 			}
 		}
+	}
+}
+
+func getClassEvent(class Class) *calendar.Event {
+	summary := class.name
+	location := class.room
+	description := ""
+	if class.theme != "" {
+		description += fmt.Sprintf("Theme: %s\n", class.theme)
+	}
+	description += fmt.Sprintf("Teacher: %s\n", class.teacher)
+	if len(class.homeworks) > 0 {
+		description += fmt.Sprintf("Homeworks: %s\n", strings.Join(class.homeworks, ", "))
+	}
+
+	start := time.Date(class.date.Year(), class.date.Month(), class.date.Day(), class.from.Hour(), class.from.Minute(), 0, 0, class.from.Location()).Format(time.RFC3339)
+	end := time.Date(class.date.Year(), class.date.Month(), class.date.Day(), class.to.Hour(), class.to.Minute(), 0, 0, class.to.Location()).Format(time.RFC3339)
+
+	return &calendar.Event{
+		Summary:     summary,
+		Location:    location,
+		Description: description,
+		Start: &calendar.EventDateTime{
+			DateTime: start,
+		},
+		End: &calendar.EventDateTime{
+			DateTime: end,
+		},
 	}
 }
 

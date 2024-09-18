@@ -31,11 +31,6 @@ func Sync(config *Config) error {
 		RefreshToken: config.RefreshToken,
 	})
 
-	_, err := tokenSource.Token()
-	if err != nil {
-		return err
-	}
-
 	client := oauth2.NewClient(context.TODO(), tokenSource)
 
 	srv, err := calendar.NewService(context.TODO(), option.WithHTTPClient(client))

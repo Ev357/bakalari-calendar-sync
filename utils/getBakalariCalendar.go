@@ -27,16 +27,36 @@ func getBakalariCalendar(config *Config) ([]Day, error) {
 	}
 
 	_, err = client.PostForm(loginUrl, url.Values{
-		"username":   {config.Username},
-		"password":   {config.Password},
-		"persistent": {"true"},
+		"username": {config.Username},
+		"password": {config.Password},
 	})
 
 	if err != nil {
 		panic(err)
 	}
 
-	resp, err := client.Get(config.Url + "/bakaweb/next/rozvrh.aspx")
+	urls := []string{
+		config.Url + "/bakaweb/next/rozvrh.aspx",
+		config.Url + "/bakaweb/next/rozvrh.aspx?s=next",
+	}
+
+	events := []Day{}
+
+	for _, url := range urls {
+		weekEvents, etr := getEvents(client, url)
+
+		if etr != nil {
+			return nil, etr
+		}
+
+		events = append(events, weekEvents...)
+	}
+
+	return events, nil
+}
+
+func getEvents(client *http.Client, calendarUrl string) ([]Day, error) {
+	resp, err := client.Get(calendarUrl)
 
 	if err != nil {
 		return nil, err

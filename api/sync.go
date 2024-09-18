@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"crypto/subtle"
 	"fmt"
 	"net/http"
 
@@ -18,7 +19,10 @@ func Handler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if r.Header.Get("Authorization") != fmt.Sprintf("Bearer %s", config.CronSecret) {
+	authHeader := r.Header.Get("Authorization")
+	expectedAuthHeader := fmt.Sprintf("Bearer %s", config.CronSecret)
+
+	if subtle.ConstantTimeCompare([]byte(authHeader), []byte(expectedAuthHeader)) != 1 {
 		http.Error(w, "Unauthorized", http.StatusUnauthorized)
 		return
 	}

@@ -155,12 +155,9 @@ func getClass(node *html.Node, index int, hours []Hour, date time.Time) (*Class,
 	if dayItemNode != nil {
 		for _, attr := range dayItemNode.Attr {
 			if attr.Key == "data-detail" {
-				err := json.Unmarshal([]byte(attr.Val), &dataDetail)
-
-				if err != nil {
+				if err := json.Unmarshal([]byte(attr.Val), &dataDetail); err != nil {
 					return nil, err
 				}
-
 			}
 		}
 	}

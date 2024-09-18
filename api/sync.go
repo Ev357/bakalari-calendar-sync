@@ -27,9 +27,7 @@ func Handler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = utils.Sync(config)
-
-	if err != nil {
+	if err := utils.Sync(config); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}

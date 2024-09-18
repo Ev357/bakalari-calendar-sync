@@ -68,22 +68,18 @@ func Sync(config *Config) error {
 
 				if googleEvent != nil {
 					if isEventDifferent(googleEvent, bakalariEvent) {
-						_, err := srv.Events.Patch("primary", googleEvent.Id, bakalariEvent).Do()
-
-						if err != nil {
+						if _, err := srv.Events.Patch("primary", googleEvent.Id, bakalariEvent).Do(); err != nil {
 							return err
 						}
 					}
 				} else {
-					_, err := srv.Events.Insert("primary", bakalariEvent).Do()
-					if err != nil {
+					if _, err := srv.Events.Insert("primary", bakalariEvent).Do(); err != nil {
 						return err
 					}
 				}
 			default:
 				if googleEvent != nil {
-					err := srv.Events.Delete("primary", googleEvent.Id).Do()
-					if err != nil {
+					if err := srv.Events.Delete("primary", googleEvent.Id).Do(); err != nil {
 						return err
 					}
 				}

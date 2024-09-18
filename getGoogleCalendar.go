@@ -6,7 +6,7 @@ import (
 	"google.golang.org/api/calendar/v3"
 )
 
-func getGoogleCalendarEvents(config *Config, srv *calendar.Service) (*calendar.Events, error) {
+func getGoogleCalendarEvents(srv *calendar.Service) (*calendar.Events, error) {
 	now := time.Now()
 	startOfWeek := getStartOfWeek(now).Format(time.RFC3339)
 	endOfWeek := getEndOfWeek(now).Format(time.RFC3339)

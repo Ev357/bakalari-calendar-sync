@@ -58,7 +58,7 @@ func main() {
 		panic(err)
 	}
 
-	googleCalendar, err := getGoogleCalendarEvents(config, srv)
+	googleCalendar, err := getGoogleCalendarEvents(srv)
 
 	if err != nil {
 		panic(err)

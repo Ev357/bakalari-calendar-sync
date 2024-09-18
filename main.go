@@ -7,9 +7,18 @@ import (
 	"time"
 
 	"github.com/joho/godotenv"
+	"golang.org/x/oauth2"
+	"golang.org/x/oauth2/google"
 	"google.golang.org/api/calendar/v3"
 	"google.golang.org/api/option"
 )
+
+type Token struct {
+	AccessToken  string `json:"access_token"`
+	TokenType    string `json:"token_type"`
+	RefreshToken string `json:"refresh_token"`
+	Expiry       string `json:"expiry"`
+}
 
 func main() {
 	godotenv.Overload()
@@ -20,9 +29,25 @@ func main() {
 		panic(err)
 	}
 
-	ctx := context.Background()
+	oauthConfig := &oauth2.Config{
+		ClientID:     config.clientId,
+		ClientSecret: config.clientSecret,
+		Scopes:       []string{calendar.CalendarScope},
+		Endpoint:     google.Endpoint,
+	}
 
-	srv, err := calendar.NewService(ctx, option.WithCredentialsJSON(config.serviceAccount))
+	tokenSource := oauthConfig.TokenSource(context.TODO(), &oauth2.Token{
+		RefreshToken: config.refreshToken,
+	})
+
+	_, err = tokenSource.Token()
+	if err != nil {
+		panic(err)
+	}
+
+	client := oauth2.NewClient(context.TODO(), tokenSource)
+
+	srv, err := calendar.NewService(context.TODO(), option.WithHTTPClient(client))
 	if err != nil {
 		panic(err)
 	}
@@ -41,26 +66,28 @@ func main() {
 
 	for _, day := range bakalariCalendar {
 		for _, event := range day {
-			googleEvent, err := findGoogleEvent(googleCalendar, event)
+			googleEvent, err := findGoogleEvent(*googleCalendar, event)
 
 			if err != nil {
 				panic(err)
 			}
 
-			if googleEvent != nil {
-				switch event.status {
-				case "normal":
+			switch event.status {
+			case "normal":
+				if googleEvent != nil {
 					// Check if the event is still correct
-				default:
-					err := srv.Events.Delete(config.account, googleEvent.Id).Do()
+				} else {
+					_, err := srv.Events.Insert("primary", getClassEvent(event)).Do()
 					if err != nil {
 						panic(err)
 					}
 				}
-			} else {
-				_, err := srv.Events.Insert(config.account, getClassEvent(event)).Do()
-				if err != nil {
-					panic(err)
+			default:
+				if googleEvent != nil {
+					err := srv.Events.Delete("primary", googleEvent.Id).Do()
+					if err != nil {
+						panic(err)
+					}
 				}
 			}
 		}
@@ -92,11 +119,20 @@ func getClassEvent(class Class) *calendar.Event {
 		End: &calendar.EventDateTime{
 			DateTime: end,
 		},
+		Reminders: &calendar.EventReminders{
+			UseDefault:      false,
+			ForceSendFields: []string{"UseDefault"},
+		},
+		ExtendedProperties: &calendar.EventExtendedProperties{
+			Private: map[string]string{
+				"forBakalariCalendarSync": "true",
+			},
+		},
 	}
 }
 
-func findGoogleEvent(googleCalendar []calendar.Event, class Class) (*calendar.Event, error) {
-	for _, event := range googleCalendar {
+func findGoogleEvent(googleCalendar calendar.Events, class Class) (*calendar.Event, error) {
+	for _, event := range googleCalendar.Items {
 		parsedTime, err := time.Parse(time.RFC3339, event.Start.DateTime)
 
 		if err != nil {
@@ -109,7 +145,7 @@ func findGoogleEvent(googleCalendar []calendar.Event, class Class) (*calendar.Ev
 		y2, M2, d2 := class.date.Date()
 
 		if h1 == h2 && m1 == m2 && s1 == s2 && y1 == y2 && M1 == M2 && d1 == d2 {
-			return &event, nil
+			return event, nil
 		}
 	}
 

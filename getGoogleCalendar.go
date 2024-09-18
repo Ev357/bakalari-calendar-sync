@@ -6,27 +6,14 @@ import (
 	"google.golang.org/api/calendar/v3"
 )
 
-func getGoogleCalendarEvents(config *Config, srv *calendar.Service) ([]calendar.Event, error) {
+func getGoogleCalendarEvents(config *Config, srv *calendar.Service) (*calendar.Events, error) {
 	now := time.Now()
 	startOfWeek := getStartOfWeek(now).Format(time.RFC3339)
 	endOfWeek := getEndOfWeek(now).Format(time.RFC3339)
 
-	unfilteredEvents, err := srv.Events.List(config.account).
-		SingleEvents(true).TimeMin(startOfWeek).TimeMax(endOfWeek).Do()
+	return srv.Events.List("primary").
+		SingleEvents(true).TimeMin(startOfWeek).TimeMax(endOfWeek).PrivateExtendedProperty("forBakalariCalendarSync=true").Do()
 
-	if err != nil {
-		return nil, err
-	}
-
-	events := []calendar.Event{}
-
-	for _, item := range unfilteredEvents.Items {
-		if item.Creator.Email == config.serviceAccountEmail {
-			events = append(events, *item)
-		}
-	}
-
-	return events, nil
 }
 
 func getStartOfWeek(t time.Time) time.Time {

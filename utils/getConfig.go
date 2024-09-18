@@ -1,4 +1,4 @@
-package main
+package utils
 
 import (
 	"errors"
@@ -6,21 +6,23 @@ import (
 )
 
 type Config struct {
-	url          string
-	username     string
-	password     string
-	clientId     string
-	clientSecret string
-	refreshToken string
+	Url          string
+	Username     string
+	Password     string
+	ClientId     string
+	ClientSecret string
+	RefreshToken string
+	CronSecret   string
 }
 
-func getConfig() (*Config, error) {
+func GetConfig() (*Config, error) {
 	url := os.Getenv("URL")
 	username := os.Getenv("USERNAME")
 	password := os.Getenv("PASSWORD")
 	clientId := os.Getenv("CLIENT_ID")
 	clientSecret := os.Getenv("CLIENT_SECRET")
 	refreshToken := os.Getenv("REFRESH_TOKEN")
+	cronSecret := os.Getenv("CRON_SECRET")
 
 	if url == "" {
 		return nil, errors.New("Url is not set")
@@ -46,6 +48,10 @@ func getConfig() (*Config, error) {
 		return nil, errors.New("Refresh token is not set")
 	}
 
+	if cronSecret == "" {
+		return nil, errors.New("Cron secret is not set")
+	}
+
 	return &Config{
 		url,
 		username,
@@ -53,5 +59,6 @@ func getConfig() (*Config, error) {
 		clientId,
 		clientSecret,
 		refreshToken,
+		cronSecret,
 	}, nil
 }

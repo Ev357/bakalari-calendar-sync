@@ -1,4 +1,4 @@
-package main
+package utils
 
 import (
 	"encoding/json"
@@ -15,7 +15,7 @@ import (
 )
 
 func getBakalariCalendar(config *Config) ([]Day, error) {
-	loginUrl := config.url + "/bakaweb/Login"
+	loginUrl := config.Url + "/bakaweb/Login"
 
 	jar, err := cookiejar.New(nil)
 	if err != nil {
@@ -27,8 +27,8 @@ func getBakalariCalendar(config *Config) ([]Day, error) {
 	}
 
 	_, err = client.PostForm(loginUrl, url.Values{
-		"username":   {config.username},
-		"password":   {config.password},
+		"username":   {config.Username},
+		"password":   {config.Password},
 		"persistent": {"true"},
 	})
 
@@ -36,7 +36,7 @@ func getBakalariCalendar(config *Config) ([]Day, error) {
 		panic(err)
 	}
 
-	resp, err := client.Get(config.url + "/bakaweb/next/rozvrh.aspx")
+	resp, err := client.Get(config.Url + "/bakaweb/next/rozvrh.aspx")
 
 	if err != nil {
 		return nil, err

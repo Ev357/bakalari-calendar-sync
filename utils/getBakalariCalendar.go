@@ -43,10 +43,10 @@ func getBakalariCalendar(config *Config) ([]Day, error) {
 	events := []Day{}
 
 	for _, url := range urls {
-		weekEvents, etr := getEvents(client, url)
+		weekEvents, err := getEvents(client, url)
 
-		if etr != nil {
-			return nil, etr
+		if err != nil {
+			return nil, err
 		}
 
 		events = append(events, weekEvents...)

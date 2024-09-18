@@ -9,10 +9,10 @@ import (
 func getGoogleCalendarEvents(srv *calendar.Service) (*calendar.Events, error) {
 	now := time.Now()
 	startOfWeek := getStartOfWeek(now).Format(time.RFC3339)
-	endOfWeek := getEndOfTwoWeeks(now).Format(time.RFC3339)
+	endOfTwoWeeks := getEndOfTwoWeeks(now).Format(time.RFC3339)
 
 	return srv.Events.List("primary").
-		SingleEvents(true).TimeMin(startOfWeek).TimeMax(endOfWeek).PrivateExtendedProperty("forBakalariCalendarSync=true").Do()
+		SingleEvents(true).TimeMin(startOfWeek).TimeMax(endOfTwoWeeks).PrivateExtendedProperty("forBakalariCalendarSync=true").Do()
 
 }
 

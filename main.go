@@ -105,9 +105,12 @@ func getClassEvent(class Class) *calendar.Event {
 	if len(class.homeworks) > 0 {
 		description += fmt.Sprintf("Homeworks: %s\n", strings.Join(class.homeworks, ", "))
 	}
-
-	start := time.Date(class.date.Year(), class.date.Month(), class.date.Day(), class.from.Hour(), class.from.Minute(), 0, 0, class.from.Location()).Format(time.RFC3339)
-	end := time.Date(class.date.Year(), class.date.Month(), class.date.Day(), class.to.Hour(), class.to.Minute(), 0, 0, class.to.Location()).Format(time.RFC3339)
+	timeLocation, err := time.LoadLocation("Europe/Prague")
+	if err != nil {
+		panic(err)
+	}
+	start := time.Date(class.date.Year(), class.date.Month(), class.date.Day(), class.from.Hour(), class.from.Minute(), 0, 0, timeLocation).Format(time.RFC3339)
+	end := time.Date(class.date.Year(), class.date.Month(), class.date.Day(), class.to.Hour(), class.to.Minute(), 0, 0, timeLocation).Format(time.RFC3339)
 
 	return &calendar.Event{
 		Summary:     summary,
@@ -115,9 +118,11 @@ func getClassEvent(class Class) *calendar.Event {
 		Description: description,
 		Start: &calendar.EventDateTime{
 			DateTime: start,
+			TimeZone: "Europe/Prague",
 		},
 		End: &calendar.EventDateTime{
 			DateTime: end,
+			TimeZone: "Europe/Prague",
 		},
 		Reminders: &calendar.EventReminders{
 			UseDefault:      false,

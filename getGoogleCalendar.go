@@ -17,22 +17,15 @@ func getGoogleCalendarEvents(srv *calendar.Service) (*calendar.Events, error) {
 }
 
 func getStartOfWeek(t time.Time) time.Time {
-	weekday := int(t.Weekday())
-	if weekday == 0 {
-		weekday = 7
-	}
+	daysBeforeStartOfWeek := t.Weekday() - time.Sunday
 
-	diff := weekday - 1
-
-	return t.AddDate(0, 0, -diff).Truncate(24 * time.Hour)
+	return t.AddDate(0, 0, -int(daysBeforeStartOfWeek)).Truncate(24 * time.Hour)
 }
 
 func getEndOfWeek(t time.Time) time.Time {
 	daysUntilEndOfWeek := time.Saturday - t.Weekday()
 
-	endOfWeek := t.AddDate(0, 0, int(daysUntilEndOfWeek)+1)
+	endOfWeek := t.AddDate(0, 0, int(daysUntilEndOfWeek)).Truncate(24 * time.Hour)
 
-	endOfDay := time.Date(endOfWeek.Year(), endOfWeek.Month(), endOfWeek.Day(), 23, 59, 59, 0, endOfWeek.Location())
-
-	return endOfDay
+	return endOfWeek.Add(24*time.Hour - time.Nanosecond)
 }

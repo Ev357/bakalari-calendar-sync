@@ -32,7 +32,7 @@ func getBakalariCalendar(config *Config) ([]Day, error) {
 	})
 
 	if err != nil {
-		panic(err)
+		return nil, err
 	}
 
 	urls := []string{

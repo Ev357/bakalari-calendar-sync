@@ -26,7 +26,7 @@ func Handler(w http.ResponseWriter, r *http.Request) {
 	err = utils.Sync(config)
 
 	if err != nil {
-		panic(err)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
 
 	w.Write([]byte("ok"))

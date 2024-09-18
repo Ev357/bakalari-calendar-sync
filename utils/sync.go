@@ -65,19 +65,31 @@ func Sync(config *Config) error {
 
 			switch event.status {
 			case "normal":
+				bakalariEvent, err := getClassEvent(event)
+
+				if err != nil {
+					return err
+				}
+
 				if googleEvent != nil {
-					// Check if the event is still correct
+					if isEventDifferent(googleEvent, bakalariEvent) {
+						_, err := srv.Events.Patch("primary", googleEvent.Id, bakalariEvent).Do()
+
+						if err != nil {
+							return err
+						}
+					}
 				} else {
-					_, err := srv.Events.Insert("primary", getClassEvent(event)).Do()
+					_, err := srv.Events.Insert("primary", bakalariEvent).Do()
 					if err != nil {
-						panic(err)
+						return err
 					}
 				}
 			default:
 				if googleEvent != nil {
 					err := srv.Events.Delete("primary", googleEvent.Id).Do()
 					if err != nil {
-						panic(err)
+						return err
 					}
 				}
 			}
@@ -87,7 +99,15 @@ func Sync(config *Config) error {
 	return nil
 }
 
-func getClassEvent(class Class) *calendar.Event {
+func isEventDifferent(googleEvent *calendar.Event, bakalariEvent *calendar.Event) bool {
+	if googleEvent.Summary == bakalariEvent.Summary && googleEvent.Description == bakalariEvent.Description && googleEvent.Location == bakalariEvent.Location {
+		return false
+	}
+
+	return true
+}
+
+func getClassEvent(class Class) (*calendar.Event, error) {
 	summary := class.name
 	location := class.room
 	description := ""
@@ -100,7 +120,7 @@ func getClassEvent(class Class) *calendar.Event {
 	}
 	timeLocation, err := time.LoadLocation("Europe/Prague")
 	if err != nil {
-		panic(err)
+		return nil, err
 	}
 	start := time.Date(class.date.Year(), class.date.Month(), class.date.Day(), class.from.Hour(), class.from.Minute(), 0, 0, timeLocation).Format(time.RFC3339)
 	end := time.Date(class.date.Year(), class.date.Month(), class.date.Day(), class.to.Hour(), class.to.Minute(), 0, 0, timeLocation).Format(time.RFC3339)
@@ -126,7 +146,7 @@ func getClassEvent(class Class) *calendar.Event {
 				"forBakalariCalendarSync": "true",
 			},
 		},
-	}
+	}, nil
 }
 
 func findGoogleEvent(googleCalendar calendar.Events, class Class) (*calendar.Event, error) {

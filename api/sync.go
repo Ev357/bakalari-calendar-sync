@@ -28,6 +28,14 @@ func Handler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := utils.Sync(config); err != nil {
+
+		ignoreErrorsHeader := r.Header.Get("X-Ignore-Errors")
+
+		if ignoreErrorsHeader != "" {
+			w.Write([]byte("ok"))
+			return
+		}
+
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}

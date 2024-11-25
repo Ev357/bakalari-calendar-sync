@@ -52,7 +52,7 @@ func Sync(config *Config) error {
 
 	for _, day := range bakalariCalendar {
 		for _, event := range day {
-			googleEvent, err := findGoogleEvent(*googleCalendar, event)
+			googleEvent, err := findGoogleEvent(*googleCalendar, event, srv)
 
 			if err != nil {
 				return err
@@ -140,7 +140,9 @@ func getClassEvent(class Class) (*calendar.Event, error) {
 	}, nil
 }
 
-func findGoogleEvent(googleCalendar calendar.Events, class Class) (*calendar.Event, error) {
+func findGoogleEvent(googleCalendar calendar.Events, class Class, srv *calendar.Service) (*calendar.Event, error) {
+	googleEvents := []*calendar.Event{}
+
 	for _, event := range googleCalendar.Items {
 		parsedTime, err := time.Parse(time.RFC3339, event.Start.DateTime)
 
@@ -154,6 +156,16 @@ func findGoogleEvent(googleCalendar calendar.Events, class Class) (*calendar.Eve
 		y2, M2, d2 := class.date.Date()
 
 		if h1 == h2 && m1 == m2 && s1 == s2 && y1 == y2 && M1 == M2 && d1 == d2 {
+			googleEvents = append(googleEvents, event)
+		}
+	}
+
+	for index, event := range googleEvents {
+		if index == len(googleEvents)-1 {
+			return event, nil
+		}
+
+		if err := srv.Events.Delete("primary", event.Id).Do(); err != nil {
 			return event, nil
 		}
 	}

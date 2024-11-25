@@ -52,10 +52,22 @@ func Sync(config *Config) error {
 
 	for _, day := range bakalariCalendar {
 		for _, event := range day {
-			googleEvent, err := findGoogleEvent(*googleCalendar, event, srv)
+			googleEvents, err := findGoogleEvents(*googleCalendar, event)
 
 			if err != nil {
 				return err
+			}
+
+			googleEvent := calendar.Event{}
+
+			for index, event := range googleEvents {
+				if index == len(googleEvents)-1 {
+					googleEvent = *event
+				}
+
+				if err := srv.Events.Delete("primary", event.Id).Do(); err != nil {
+					return err
+				}
 			}
 
 			switch event.status {
@@ -66,8 +78,8 @@ func Sync(config *Config) error {
 					return err
 				}
 
-				if googleEvent != nil {
-					if isEventDifferent(googleEvent, bakalariEvent) {
+				if googleEvents != nil {
+					if isEventDifferent(&googleEvent, bakalariEvent) {
 						if _, err := srv.Events.Patch("primary", googleEvent.Id, bakalariEvent).Do(); err != nil {
 							return err
 						}
@@ -78,7 +90,7 @@ func Sync(config *Config) error {
 					}
 				}
 			default:
-				if googleEvent != nil {
+				if googleEvents != nil {
 					if err := srv.Events.Delete("primary", googleEvent.Id).Do(); err != nil {
 						return err
 					}
@@ -140,7 +152,7 @@ func getClassEvent(class Class) (*calendar.Event, error) {
 	}, nil
 }
 
-func findGoogleEvent(googleCalendar calendar.Events, class Class, srv *calendar.Service) (*calendar.Event, error) {
+func findGoogleEvents(googleCalendar calendar.Events, class Class) ([]*calendar.Event, error) {
 	googleEvents := []*calendar.Event{}
 
 	for _, event := range googleCalendar.Items {
@@ -160,15 +172,5 @@ func findGoogleEvent(googleCalendar calendar.Events, class Class, srv *calendar.
 		}
 	}
 
-	for index, event := range googleEvents {
-		if index == len(googleEvents)-1 {
-			return event, nil
-		}
-
-		if err := srv.Events.Delete("primary", event.Id).Do(); err != nil {
-			return event, nil
-		}
-	}
-
-	return nil, nil
+	return googleEvents, nil
 }

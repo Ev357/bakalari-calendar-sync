@@ -166,7 +166,7 @@ func findGoogleEvent(googleCalendar calendar.Events, class Class, srv *calendar.
 		}
 
 		if err := srv.Events.Delete("primary", event.Id).Do(); err != nil {
-			return event, nil
+			return nil, err
 		}
 	}
 

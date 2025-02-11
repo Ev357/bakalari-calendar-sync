@@ -129,7 +129,7 @@ func getDay(doc *html.Node, hours []Hour) (*Day, error) {
 		class, err := getClass(classContainer, index, hours, date)
 
 		if err != nil {
-			return nil, err
+			continue
 		}
 
 		day = append(day, *class)

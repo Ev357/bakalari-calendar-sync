@@ -185,7 +185,7 @@ func getClass(node *html.Node, index int, hours []Hour, date time.Time) (*Class,
 	nameNode := dom.QuerySelector(node, ".day-item > div > div > div:nth-child(2)")
 
 	if nameNode == nil {
-		return nil, errors.New("Class name not found")
+		return nil, errors.New("Classname not found")
 	}
 
 	name := dom.InnerText(nameNode)
